@@ -7,25 +7,23 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type LocalcacheTestSuite struct {
+type localcacheTestSuite struct {
 	suite.Suite
-	cache                         Cache
-	VariableThatShouldStartAtFive int
+	cache Cache
 }
 
-func (suite *LocalcacheTestSuite) SetupTest() {
-	suite.VariableThatShouldStartAtFive = 5
+func (suite *localcacheTestSuite) SetupTest() {
 	suite.cache = New()
 }
 
-func (suite *LocalcacheTestSuite) TestLocalcacheGetNil() {
+func (suite *localcacheTestSuite) TestLocalcacheGetNil() {
 	suite.Equal(nil, suite.cache.Get("not exist"))
 }
-func (suite *LocalcacheTestSuite) TestLocalcacheSetThenGet() {
+func (suite *localcacheTestSuite) TestLocalcacheSetThenGet() {
 	suite.cache.Set("mykey", 1)
 	suite.Equal(1, suite.cache.Get("mykey"))
 }
-func (suite *LocalcacheTestSuite) TestLocalcacheGetOutdatedData() {
+func (suite *localcacheTestSuite) TestLocalcacheGetOutdatedData() {
 	suite.cache.Set("mykey", 1)
 	impl := suite.cache.(*cacheImpl)
 	impl.createdAt["mykey"] = &time.Time{}
@@ -33,5 +31,5 @@ func (suite *LocalcacheTestSuite) TestLocalcacheGetOutdatedData() {
 }
 
 func TestLocalcacheTestSuite(t *testing.T) {
-	suite.Run(t, new(LocalcacheTestSuite))
+	suite.Run(t, new(localcacheTestSuite))
 }
