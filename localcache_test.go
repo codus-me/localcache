@@ -19,14 +19,15 @@ func (suite *localcacheTestSuite) SetupTest() {
 func (suite *localcacheTestSuite) TestLocalcacheGetNil() {
 	suite.Require().Equal(nil, suite.cache.Get("not exist"))
 }
-func (suite *localcacheTestSuite) TestLocalcacheSetThenGet() {
+func (suite *localcacheTestSuite) TestLocalcacheSet() {
+	impl := suite.cache.(*cacheImpl)
 	suite.cache.Set("mykey", 1)
-	suite.Require().Equal(1, suite.cache.Get("mykey"))
+	suite.Require().Equal(1, impl.hashMap["mykey"].data)
 }
 func (suite *localcacheTestSuite) TestLocalcacheGetOutdatedData() {
 	suite.cache.Set("mykey", 1)
 	impl := suite.cache.(*cacheImpl)
-	impl.createdAt["mykey"] = &time.Time{}
+	impl.hashMap["mykey"].createdAt = time.Time{}
 	suite.Require().Equal(nil, suite.cache.Get("mykey"))
 }
 

@@ -4,27 +4,37 @@ import (
 	"time"
 )
 
-type cacheImpl struct {
-	data      map[string]interface{}
-	createdAt map[string]*time.Time
+// New will create and return a implementation of Cache
+func New() *cacheImpl {
+	return &cacheImpl{
+		hashMap: make(map[string]*cachedData),
+	}
 }
 
-func newCacheImpl() *cacheImpl {
-	return &cacheImpl{
-		data:      make(map[string]interface{}),
-		createdAt: make(map[string]*time.Time),
-	}
+const ttl time.Duration = 30 * time.Second
+
+type cacheImpl struct {
+	hashMap map[string]*cachedData
+}
+
+type cachedData struct {
+	data      interface{}
+	createdAt time.Time
 }
 
 func (obj *cacheImpl) Get(key string) interface{} {
-	if obj.createdAt[key] != nil && time.Now().After(obj.createdAt[key].Add(TTL)) {
+	if obj.hashMap[key] == nil {
 		return nil
 	}
-	return obj.data[key]
+	if time.Now().After(obj.hashMap[key].createdAt.Add(ttl)) {
+		return nil
+	}
+	return obj.hashMap[key].data
 }
 
 func (obj *cacheImpl) Set(key string, value interface{}) {
-	now := time.Now()
-	obj.createdAt[key] = &now
-	obj.data[key] = value
+	obj.hashMap[key] = &cachedData{
+		data:      value,
+		createdAt: time.Now(),
+	}
 }
