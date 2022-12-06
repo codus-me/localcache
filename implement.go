@@ -30,9 +30,7 @@ func (obj *cacheImpl) Get(key string) interface{} {
 	cachedData := obj.hashMap[key]
 	if cachedData == nil {
 		return nil
-	}
-	outdated := time.Now().After(cachedData.createdAt.Add(ttl))
-	if outdated {
+	} else if ok := time.Now().Before(cachedData.createdAt.Add(ttl)); !ok {
 		return nil
 	}
 	return cachedData.data
