@@ -16,6 +16,13 @@ func (suite *localcacheTestSuite) SetupTest() {
 	suite.cache = New()
 }
 
+func (suite *localcacheTestSuite) TestLocalcacheGet() {
+	suite.cache.hashMap["mykey"] = &cachedData{
+		data:      "myvalue",
+		createdAt: time.Now(),
+	}
+	suite.Require().Equal("myvalue", suite.cache.Get("mykey"))
+}
 func (suite *localcacheTestSuite) TestLocalcacheGetNil() {
 	suite.Require().Equal(nil, suite.cache.Get("not exist"))
 }
