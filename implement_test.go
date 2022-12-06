@@ -36,21 +36,18 @@ func (suite *localcacheTestSuite) TestLocalcacheSet() {
 	suite.cache.Set("mykey", 1)
 	suite.Require().Equal(1, suite.cache.hashMap["mykey"].data)
 }
-func (suite *localcacheTestSuite) TestLocalcacheConcurrency() {
+func (suite *localcacheTestSuite) TestLocalcacheConcurrencySet() {
+	pause := make(chan struct{})
 	var wg sync.WaitGroup
-	wg.Add(200)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 50; i++ {
+		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			<-pause
 			suite.cache.Set("mykey", "whatever")
 		}()
 	}
-	for i := 0; i < 100; i++ {
-		go func() {
-			defer wg.Done()
-			suite.cache.Set("mykey", "whatever")
-		}()
-	}
+	close(pause)
 	wg.Wait()
 }
 
