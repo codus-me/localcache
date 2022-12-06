@@ -1,6 +1,7 @@
 package localcache
 
 import (
+	"sync"
 	"testing"
 	"time"
 
@@ -34,6 +35,23 @@ func (suite *localcacheTestSuite) TestLocalcacheGetOutdatedData() {
 func (suite *localcacheTestSuite) TestLocalcacheSet() {
 	suite.cache.Set("mykey", 1)
 	suite.Require().Equal(1, suite.cache.hashMap["mykey"].data)
+}
+func (suite *localcacheTestSuite) TestLocalcacheConcurrency() {
+	var wg sync.WaitGroup
+	wg.Add(200)
+	for i := 0; i < 100; i++ {
+		go func() {
+			defer wg.Done()
+			suite.cache.Set("mykey", "whatever")
+		}()
+	}
+	for i := 0; i < 100; i++ {
+		go func() {
+			defer wg.Done()
+			suite.cache.Set("mykey", "whatever")
+		}()
+	}
+	wg.Wait()
 }
 
 func TestLocalcacheTestSuite(t *testing.T) {

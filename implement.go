@@ -1,6 +1,7 @@
 package localcache
 
 import (
+	"sync"
 	"time"
 )
 
@@ -15,6 +16,7 @@ const ttl time.Duration = 30 * time.Second
 
 type cacheImpl struct {
 	hashMap map[string]*cachedData
+	mux     sync.RWMutex
 }
 
 type cachedData struct {
@@ -23,6 +25,8 @@ type cachedData struct {
 }
 
 func (obj *cacheImpl) Get(key string) interface{} {
+	obj.mux.RLock()
+	defer obj.mux.RUnlock()
 	cachedData := obj.hashMap[key]
 	if cachedData == nil {
 		return nil
@@ -35,6 +39,8 @@ func (obj *cacheImpl) Get(key string) interface{} {
 }
 
 func (obj *cacheImpl) Set(key string, value interface{}) {
+	obj.mux.Lock()
+	defer obj.mux.Unlock()
 	obj.hashMap[key] = &cachedData{
 		data:      value,
 		createdAt: time.Now(),
