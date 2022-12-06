@@ -23,14 +23,15 @@ type cachedData struct {
 }
 
 func (obj *cacheImpl) Get(key string) interface{} {
-	if obj.hashMap[key] == nil {
+	cachedData := obj.hashMap[key]
+	if cachedData == nil {
 		return nil
 	}
-	outdated := time.Now().After(obj.hashMap[key].createdAt.Add(ttl))
+	outdated := time.Now().After(cachedData.createdAt.Add(ttl))
 	if outdated {
 		return nil
 	}
-	return obj.hashMap[key].data
+	return cachedData.data
 }
 
 func (obj *cacheImpl) Set(key string, value interface{}) {
