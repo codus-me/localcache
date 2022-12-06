@@ -26,14 +26,14 @@ func (suite *localcacheTestSuite) TestLocalcacheGet() {
 func (suite *localcacheTestSuite) TestLocalcacheGetNil() {
 	suite.Require().Equal(nil, suite.cache.Get("not exist"))
 }
-func (suite *localcacheTestSuite) TestLocalcacheSet() {
-	suite.cache.Set("mykey", 1)
-	suite.Require().Equal(1, suite.cache.hashMap["mykey"].data)
-}
 func (suite *localcacheTestSuite) TestLocalcacheGetOutdatedData() {
 	suite.cache.Set("mykey", 1)
 	suite.cache.hashMap["mykey"].createdAt = time.Time{}
 	suite.Require().Equal(nil, suite.cache.Get("mykey"))
+}
+func (suite *localcacheTestSuite) TestLocalcacheSet() {
+	suite.cache.Set("mykey", 1)
+	suite.Require().Equal(1, suite.cache.hashMap["mykey"].data)
 }
 
 func TestLocalcacheTestSuite(t *testing.T) {
