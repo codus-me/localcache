@@ -5,7 +5,7 @@ import (
 )
 
 // New will create and return a implementation of Cache
-func New() *cacheImpl {
+func New() Cache {
 	return &cacheImpl{
 		hashMap: make(map[string]*cachedData),
 	}

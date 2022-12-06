@@ -13,7 +13,7 @@ type localcacheTestSuite struct {
 }
 
 func (suite *localcacheTestSuite) SetupTest() {
-	suite.cache = New()
+	suite.cache = New().(*cacheImpl)
 }
 
 func (suite *localcacheTestSuite) TestLocalcacheGet() {
