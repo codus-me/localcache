@@ -9,6 +9,7 @@ import (
 func New() Cache {
 	return &cacheImpl{
 		hashMap: make(map[string]*cachedData),
+		lockMap: make(map[string]*sync.Mutex),
 	}
 }
 
@@ -16,6 +17,7 @@ const ttl time.Duration = 30 * time.Second
 
 type cacheImpl struct {
 	hashMap map[string]*cachedData
+	lockMap map[string]*sync.Mutex
 	mux     sync.RWMutex
 }
 
@@ -43,4 +45,30 @@ func (obj *cacheImpl) Set(key string, value interface{}) {
 		data:      value,
 		createdAt: time.Now(),
 	}
+}
+
+func (obj *cacheImpl) Fetch(key string, lambda func() interface{}) (value interface{}) {
+	fetchLock := obj.getFetchLock(key)
+
+	fetchLock.Lock()
+	defer fetchLock.Unlock()
+
+	value = obj.Get(key)
+	if value != nil {
+		return
+	}
+	value = lambda()
+	obj.Set(key, value)
+	return
+}
+
+func (obj *cacheImpl) getFetchLock(key string) (fetchLock *sync.Mutex) {
+	obj.mux.Lock()
+	fetchLock = obj.lockMap[key]
+	if fetchLock == nil {
+		fetchLock = &sync.Mutex{}
+		obj.lockMap[key] = fetchLock
+	}
+	obj.mux.Unlock()
+	return
 }

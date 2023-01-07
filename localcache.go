@@ -7,4 +7,6 @@ type Cache interface {
 	Get(key string) (value interface{})
 	// Set add or replace value of specific key
 	Set(key string, value interface{})
+	// Fetch will call lambda and lock key if value {nil} ps: even key exists
+	Fetch(key string, labmda func() interface{}) (value interface{})
 }

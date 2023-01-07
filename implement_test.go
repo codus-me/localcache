@@ -50,6 +50,31 @@ func (suite *localcacheTestSuite) TestLocalcacheConcurrencySet() {
 	close(pause)
 	wg.Wait()
 }
+func (suite *localcacheTestSuite) TestLocalcacheFetch() {
+	result := suite.cache.Fetch("key", func() interface{} {
+		return "value"
+	})
+	suite.Require().Equal("value", result)
+}
+func (suite *localcacheTestSuite) TestLocalcacheConcurrencyFetch() {
+	var result interface{}
+	pause := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := 0; i < 50; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-pause
+			result = suite.cache.Fetch("key", func() interface{} {
+				time.Sleep(time.Second)
+				return "value"
+			})
+		}()
+	}
+	close(pause)
+	wg.Wait()
+	suite.Require().Equal("value", result)
+}
 
 func TestLocalcacheTestSuite(t *testing.T) {
 	suite.Run(t, new(localcacheTestSuite))
