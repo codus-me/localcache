@@ -1,8 +1,11 @@
 package localcache
 
 import (
+	"log/slog"
 	"sync"
 	"time"
+
+	"golang.org/x/sync/singleflight"
 )
 
 // New will create and return a implementation of Cache
@@ -17,7 +20,8 @@ const ttl time.Duration = 30 * time.Second
 
 type cacheImpl struct {
 	hashMap map[string]*cachedData
-	lockMap map[string]*sync.Mutex
+	lockMap map[string]*sync.Mutex // lockmap 用於 fetch
+	engine  singleflight.Group
 	mux     sync.RWMutex
 }
 
@@ -47,6 +51,25 @@ func (obj *cacheImpl) Set(key string, value interface{}) {
 	}
 }
 
+// Do 相較於 fetch，使用了 golang singleflight 來避免重複呼叫
+func (obj *cacheImpl) Do(key string, lambda func() interface{}) (value interface{}, err error) {
+	value = obj.Get(key)
+	if value != nil {
+		return
+	}
+	row, err, _ := obj.engine.Do(key, func() (interface{}, error) {
+		data := lambda()
+		return data, nil
+	})
+
+	if err != nil {
+		slog.Error("singleflight error", "err", err)
+		return nil, err
+	}
+	return row, nil
+}
+
+// Fetch 會避免 miss key，重複呼叫，重複執行。自行實作. 而Do 使用 golang singleflight
 func (obj *cacheImpl) Fetch(key string, lambda func() interface{}) (value interface{}) {
 	fetchLock := obj.getFetchLock(key)
 
